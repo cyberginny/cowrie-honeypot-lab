@@ -20,7 +20,7 @@ The goal is to observe real-world attacker behavior and gain hands-on blue-team 
 
 ##  Project Structure
 - `README.md` – Project documentation and analysis  
-- `honeycowrie_installation.sh` – Honeypot setup and attack simulation commands  
+- `Cowrie_honeypot_lab` – Honeypot setup and attack simulation commands  
 - `screenshots/` – Evidence of honeypot activity, attacks, and analysis  
 
 ---
