@@ -1,0 +1,97 @@
+# Cowrie Honeypot Lab (Cybersecurity Project)
+
+This project demonstrates the deployment of a Cowrie SSH honeypot,
+network reconnaissance, simulated attacks, traffic capture, and log analysis
+in a controlled lab environment.
+
+
+# Lab Environment
+- Ubuntu / Debian (Honeypot VM)
+- Kali Linux (Attacker VM)
+- Cowrie SSH Honeypot
+- Nmap, Hydra, Wireshark, tcpdump
+
+# Used Ubuntu Server 22.04 LTS (Jammy Jellyfish) on VirtualBox.
+https://releases.ubuntu.com/22.04/ubuntu-22.04.4-live-server-amd64.iso
+#If you’re getting errors, make sure:
+* You’re using Ubuntu 20.04 or 22.04 LTS
+* Python3 and virtualenv are installed
+* You’re not running Cowrie as root, Purpose:
+#Creates a non-root user to safely run the honeypot.
+#Create a Dedicated Honeypot User
+
+##Part 1: Environment Setup (Ubuntu/Debian)
+#Install dependencies
+$ sudo apt update && sudo apt upgrade -y
+$ sudo apt install git python3-virtualenv libssl-dev libffi-dev build-essential python3-dev -y
+
+#Install Cowrie
+$ git clone https://github.com/cowrie/cowrie
+$ cd cowrie
+$ virtualenv cowrie-env
+$ source cowrie-env/bin/activate
+$ pip install --upgrade pip
+$ pip install -r requirements.txt
+$ pip install -e .
+$ Start Cowrie
+$ cowrie init
+$ cowrie start
+$ cowrie status
+
+##Part 2: Network Reconnaissance (Kali Linux)
+#Identify Honeypot IP
+$ ip addr show
+
+#Host Discovery
+$ nmap -sn <HONEYPOT_IP>
+
+#Port Scanning & Enumeration
+$ nmap -sV -p- <HONEYPOT_IP>
+$ nmap --script vuln <HONEYPOT_IP>
+
+##Part 3: Simulated Attacks
+#SSH Login Attempts
+$ ssh root@<HONEYPOT_IP> -p 2222
+
+#Brute Force Attack (Hydra)
+$ hydra -l root -P /usr/share/wordlists/rockyou.txt ssh://<HONEYPOT_IP>:2222
+#Custom Password List
+$ echo -e "password\nroot\n123456\nadmin" > passwords.txt
+$ hydra -l root -P passwords.txt ssh://<HONEYPOT_IP>:2222
+
+#Banner Grabbing
+$ nc <HONEYPOT_IP> 2222
+$ telnet <HONEYPOT_IP> 2222
+
+#Multiple Connection Attempts
+$ for i in {1..10}; do ssh root@<HONEYPOT_IP> -p 2222; done
+
+##Part 4: Traffic Capture & Analysis
+#Capture Traffic
+$ sudo tcpdump -i eth0 host <HONEYPOT_IP> -w attack_capture.pcap
+$ sudo tcpdump -i eth0 port 2222 -w honeypot_traffic.pcap
+
+#Analyze Traffic
+$ tcpdump -r attack_capture.pcap
+$ wireshark attack_capture.pcap
+
+##Part 5: Log Analysis
+#View Logs
+$ cat var/log/cowrie/cowrie.log
+$ cat var/log/cowrie/cowrie.json
+
+#Install jq
+$ sudo apt install jq
+
+#Analyze Events
+$ grep "authentication" var/log/cowrie/cowrie.json | jq .
+$ grep "login" var/log/cowrie/cowrie.json | jq .
+$ grep "cowrie.login.failed" var/log/cowrie/cowrie.json | jq .
+$ grep "cowrie.login.success" var/log/cowrie/cowrie.json | jq .
+
+#### Skills Demonstrated
+1. Honeypot deployment
+2. SSH attack simulation
+3. Network reconnaissance
+3. Traffic capture
+4. Log analysis with jq
